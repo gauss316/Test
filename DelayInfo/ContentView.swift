@@ -10,10 +10,24 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        Text("Hello World")
+        NavigationView{
+            TabView{
+                NavigationLink(destination: SubContentView()){
+                    Text("No.1")
+                }
+                .tabItem{
+                    Image(systemName: "1.circle")
+                    Text("First")
+                }
+                Text("No.2")
+                    .tabItem{
+                        Image(systemName: "2.circle")
+                        Text("Second")
+                }
+            }
+        }
     }
 }
-
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()

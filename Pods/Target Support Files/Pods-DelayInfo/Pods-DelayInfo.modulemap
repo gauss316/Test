@@ -1,0 +1,6 @@
+framework module Pods_DelayInfo {
+  umbrella header "Pods-DelayInfo-umbrella.h"
+
+  export *
+  module * { export * }
+}
