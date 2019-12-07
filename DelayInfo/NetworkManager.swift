@@ -6,35 +6,46 @@
 //  Copyright © 2019 Takuya Ishizaka. All rights reserved.
 //
 
-import SwiftUI
+import Foundation
 import RealmSwift
 
 class Model: Object, Codable{
     @objc dynamic var name: String = ""
     @objc dynamic var company: String = ""
     @objc dynamic var lastupdate_gmt: Int64 = 0
+    @objc dynamic var update: String? = ""
 
     override public static func primaryKey() -> String? {
         return "name"
     }
 }
 
-class NetworkManager{
+class NetworkManager: ObservableObject{
     
-    var model: [Model]
+    @Published var model: [Model] = []
+    let urllink = "https://tetsudo.rti-giken.jp/free/delay.json"
+    
     init() {
-        model = []
-        guard let url = URL(string: "https://tetsudo.rti-giken.jp/free/delay.json") else { return }
-        URLSession.shared.dataTask(with: url) { (data, _, _) in
+        URLSession.shared.dataTask(with: URL(string: urllink)!) { (data, response, error) in
             guard let data = data else { return }
             let task = try! JSONDecoder().decode([Model].self, from: data)
-            let realm = try! Realm()
-            try! realm.write {
-                realm.deleteAll()
-                realm.add(task)
+            DispatchQueue.main.async {
+                for i in 0 ..< task.count {
+                    let date = NSDate(timeIntervalSince1970: TimeInterval(task[i].lastupdate_gmt))
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                    let dateStr: String = formatter.string(from: date as Date)
+                    task[i].update = dateStr
+                }
+                let realm = try! Realm()
+                try! realm.write {
+                    realm.deleteAll()
+                    realm.add(task)
+                }
+                let result = Array(realm.objects(Model.self))
+                self.model = result
+                print(Realm.Configuration.defaultConfiguration.fileURL!)
             }
-            let result = Array(realm.objects(Model.self))
-            self.model = result
         }.resume()
     }
 }
